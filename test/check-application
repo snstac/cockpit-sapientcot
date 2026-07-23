@@ -1,0 +1,24 @@
+#!/usr/bin/python3 -cimport os, sys; os.execv(os.path.dirname(sys.argv[1]) + "/common/pywrap", sys.argv)
+
+# Run this with --help to see available options for tracing and debugging
+# See https://github.com/cockpit-project/cockpit/blob/main/test/common/testlib.py
+# "class Browser" and "class MachineCase" for the available API.
+
+import testlib
+
+
+@testlib.nondestructive
+class TestApplication(testlib.MachineCase):
+    def testBasic(self):
+        b = self.browser
+
+        self.login_and_go("/aiscot")
+
+        b.wait_visible("[data-testid=aiscot-app]")
+        b.wait_visible("[data-testid=aiscot-service-card]")
+        b.wait_visible("[data-testid=aiscot-tls-card]")
+        b.wait_visible("[data-testid=aiscot-config-card]")
+
+
+if __name__ == '__main__':
+    testlib.test_main()

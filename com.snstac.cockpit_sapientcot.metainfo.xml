@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="addon">
+  <id>com.snstac.cockpit_sapientcot</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <name>SAPIENTCOT</name>
+  <summary>SAPIENT (BSI Flex 335) to TAK Gateway admin for Cockpit</summary>
+  <description>
+    <p>This Cockpit module manages SAPIENTCOT, a gateway that forwards SAPIENT (BSI Flex 335) C-UAS detections to TAK as Cursor-on-Target.</p>
+    </p>
+  </description>
+  <extends>com.snstac.aiscot</extends>
+  <launchable type="cockpit-manifest">sapientcot</launchable>
+  <url type="homepage">https://github.com/snstac/cockpit-sapientcot</url>
+  <url type="bugtracker">https://github.com/snstac/cockpit-sapientcot/issues</url>
+  <update_contact>info@snstac.com</update_contact>
+  <developer id="com.snstac">
+    <name>Sensors &amp; Signals</name>
+  </developer>
+</component>

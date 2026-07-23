@@ -1,0 +1,27 @@
+# nfpm config — builds both .deb and .rpm from the prebuilt dist/ tree.
+# Usage: VERSION=1.2.3 nfpm package -f nfpm.yaml -p deb -t out/
+name: cockpit-sapientcot
+arch: all
+platform: linux
+version: ${VERSION}
+release: "1"
+section: utils
+priority: optional
+maintainer: "Sensors & Signals LLC <oss@snstac.com>"
+vendor: "Sensors & Signals LLC"
+homepage: https://github.com/snstac/cockpit-sapientcot
+license: Apache-2.0
+description: |
+  SAPIENTCOT (SAPIENT BSI Flex 335 to TAK Gateway) admin for the Cockpit web console.
+  Adds an "APRS" page to Cockpit: start/stop/restart the sapientcot service, edit
+  its configuration (KISS TNC or APRS-IS input, CoT destination), and view logs.
+
+depends:
+  - cockpit-bridge
+
+contents:
+  - src: ./dist/
+    dst: /usr/share/cockpit/sapientcot
+    type: tree
+  - src: ./com.snstac.cockpit_sapientcot.metainfo.xml
+    dst: /usr/share/metainfo/com.snstac.cockpit_sapientcot.metainfo.xml
