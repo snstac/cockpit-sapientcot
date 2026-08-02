@@ -13,8 +13,8 @@ homepage: https://github.com/snstac/cockpit-sapientcot
 license: Apache-2.0
 description: |
   SAPIENTCOT (SAPIENT BSI Flex 335 to TAK Gateway) admin for the Cockpit web console.
-  Adds an "APRS" page to Cockpit: start/stop/restart the sapientcot service, edit
-  its configuration (KISS TNC or APRS-IS input, CoT destination), and view logs.
+  Adds a "SAPIENTCOT" page to Cockpit: start/stop/restart the sapientcot service,
+  edit its BSI Flex 335 and CoT configuration, and view logs.
 
 depends:
   - cockpit-bridge

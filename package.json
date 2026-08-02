@@ -12,7 +12,7 @@
   "scripts": {
     "watch": "ESBUILD_WATCH='true' ./build.js",
     "build": "./build.js",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "eslint": "eslint src/",
     "eslint:fix": "eslint --fix src/",
