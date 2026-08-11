@@ -12,12 +12,18 @@ class TestApplication(testlib.MachineCase):
     def testBasic(self):
         b = self.browser
 
-        self.login_and_go("/aiscot")
+        self.login_and_go("/sapientcot")
 
-        b.wait_visible("[data-testid=aiscot-app]")
-        b.wait_visible("[data-testid=aiscot-service-card]")
-        b.wait_visible("[data-testid=aiscot-tls-card]")
-        b.wait_visible("[data-testid=aiscot-config-card]")
+        b.wait_visible("[data-testid=sapientcot-app]")
+        b.wait_visible("[data-testid=sapientcot-service-card]")
+        b.wait_visible("[data-testid=sapientcot-tls-card]")
+        b.wait_visible("[data-testid=sapientcot-config-card]")
+
+        b.set_layout("medium")
+        b.click("#sapientcot-debug-expand")
+        b.wait_js_cond("document.querySelector('#app').scrollHeight > document.querySelector('#app').clientHeight")
+        b.eval_js("document.querySelector('#app').scrollTop = document.querySelector('#app').scrollHeight")
+        b.wait_js_cond("document.querySelector('#app').scrollTop > 0")
 
 
 if __name__ == '__main__':
