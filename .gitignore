@@ -22,6 +22,8 @@
 /dist/
 /pkg/
 /node_modules/
+/out/
+/output/
 /tmp/
 /tools/
  

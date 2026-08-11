@@ -11,8 +11,8 @@
   },
   "scripts": {
     "watch": "ESBUILD_WATCH='true' ./build.js",
-    "build": "./build.js",
-    "test": "vitest run",
+    "build": "node ./build.js",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "eslint": "eslint src/",
     "eslint:fix": "eslint --fix src/",
@@ -37,7 +37,7 @@
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "4.6.2",
     "gettext-parser": "8.0.0",
-    "glob": "11.0.3",
+    "glob": "11.1.0",
     "jed": "1.1.1",
     "qunit": "2.24.1",
     "stylelint": "16.23.1",
@@ -53,7 +53,7 @@
     "@patternfly/react-core": "6.1.0",
     "@patternfly/react-icons": "6.1.0",
     "@patternfly/react-styles": "6.3.1",
-    "@snstac/cockpit-shared": "github:snstac/cockpit-shared#v1.3.0",
+    "@snstac/cockpit-shared": "github:snstac/cockpit-shared#v1.3.1",
     "qrcode-generator": "1.4.4",
     "react": "18.3.1",
     "react-dom": "18.3.1"

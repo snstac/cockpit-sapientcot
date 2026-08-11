@@ -4,9 +4,9 @@ RPM_NAME := cockpit-$(PACKAGE_NAME)
 # Do not use "git describe | sed" alone: if describe fails, sed still exits 0 and T stays empty.
 VERSION_RAW := $(shell \
 	T=$$(git describe --tags 2>/dev/null | sed 's/^v//'); \
-	if [ -z "$$T" ]; then T=1; fi; \
+	if [ -z "$$T" ]; then T=0.0.0; fi; \
 	echo "$$T" | tr '-' '.')
-VERSION := $(if $(strip $(VERSION_RAW)),$(VERSION_RAW),1)
+VERSION ?= $(if $(strip $(VERSION_RAW)),$(VERSION_RAW),0.0.0)
 ifeq ($(TEST_OS),)
 TEST_OS = centos-9-stream
 endif
@@ -15,7 +15,7 @@ TARFILE=$(RPM_NAME)-$(VERSION).tar.xz
 NODE_CACHE=$(RPM_NAME)-node-$(VERSION).tar.xz
 SPEC=$(RPM_NAME).spec
 PREFIX ?= /usr/local
-APPSTREAMFILE=org.cockpit_project.$(subst -,_,$(PACKAGE_NAME)).metainfo.xml
+APPSTREAMFILE=com.snstac.cockpit_$(PACKAGE_NAME).metainfo.xml
 VM_IMAGE=$(CURDIR)/test/images/$(TEST_OS)
 # committed lockfile + stamp refreshed by npm ci when package.json / lock changes
 PACKAGE_LOCK=package-lock.json
@@ -105,9 +105,6 @@ install: $(DIST_TEST) po/LINGUAS
 	msgfmt --xml -d po \
 		--template $(APPSTREAMFILE) \
 		-o $(DESTDIR)$(PREFIX)/share/metainfo/$(APPSTREAMFILE)
-	mkdir -p $(DESTDIR)$(PREFIX)/share/polkit-1/rules.d
-	install -m 0644 packaging/49-cockpit-aiscot.rules \
-		$(DESTDIR)$(PREFIX)/share/polkit-1/rules.d/49-cockpit-aiscot.rules
 
 # this requires a built source tree and avoids having to install anything system-wide
 devel-install: $(DIST_TEST)
@@ -209,24 +206,12 @@ ci: $(NODE_MODULES_STAMP) $(COCKPIT_REPO_STAMP) $(DIST_TEST)
 	npm run stylelint
 	$(MAKE) deb
 
-deb:
-	rm -fr "`pwd`/output"
-	mkdir -m 0755 -p "`pwd`/output"
-	mkdir -m 0755 -p "`pwd`/output/cockpit-$(PACKAGE_NAME)"
-	mkdir -m 0755 -p "`pwd`/output/cockpit-$(PACKAGE_NAME)/DEBIAN"
-	mkdir -m 0755 -p "`pwd`/output/cockpit-$(PACKAGE_NAME)/usr/share/cockpit/$(PACKAGE_NAME)"
-	mkdir -m 0755 -p "`pwd`/output/cockpit-$(PACKAGE_NAME)/usr/share/polkit-1/rules.d"
-	cp -r dist/* "`pwd`/output/cockpit-$(PACKAGE_NAME)/usr/share/cockpit/$(PACKAGE_NAME)"
-	install -m 0644 packaging/49-cockpit-aiscot.rules \
-		"`pwd`/output/cockpit-$(PACKAGE_NAME)/usr/share/polkit-1/rules.d/49-cockpit-aiscot.rules"
-	cp packaging/cockpit-$(PACKAGE_NAME).control "`pwd`/output/cockpit-$(PACKAGE_NAME)/DEBIAN/control"
-	sed -i "s/1.0.0/$(VERSION)/g" "`pwd`/output/cockpit-$(PACKAGE_NAME)/DEBIAN/control"
-	chmod 755 "`pwd`/output/cockpit-$(PACKAGE_NAME)/DEBIAN/control"
-	dpkg-deb -Zxz --build output/cockpit-$(PACKAGE_NAME)
-	mv "`pwd`/output/cockpit-$(PACKAGE_NAME).deb" \
-		"`pwd`/$(RPM_NAME)_$(VERSION)_all.deb"
-	cp -f "`pwd`/$(RPM_NAME)_$(VERSION)_all.deb" "`pwd`/$(RPM_NAME)_latest_all.deb"
-	rm -r "`pwd`/output"
+deb: $(DIST_TEST)
+	rm -rf out
+	mkdir -p out
+	VERSION="$(VERSION)" nfpm package -f nfpm.yaml -p deb -t out/
+	cp -f "$$(find out -maxdepth 1 -type f -name '*.deb' -print -quit)" \
+		"$(RPM_NAME)_latest_all.deb"
 
 
 install_pkg_build_deps:
