@@ -322,9 +322,11 @@ describe('/etc/default/sapientcot round-trip', () => {
         ['COT_URL', 'http://h/a&b|c'],
         ['PYTAK_TLS_CLIENT_CERT', '/etc/x.pem;rm'],
         ['PYTAK_TLS_CLIENT_KEY', '/etc/$HOME/k'],
+        ['PYTAK_TLS_CLIENT_CAFILE', '/etc/`id`/ca.pem'],
     ];
+    const ACCEPTED_META = SHELL_META.filter(([, v]) => !/[$`]/.test(v));
 
-    test.each(SHELL_META)('%s value %j passes validation but serializes shell-safely', (key, value) => {
+    test.each(ACCEPTED_META)('%s value %j passes validation but serializes shell-safely', (key, value) => {
         expect(accepts(key, value)).toBe(true);
         const quoted = shellQuoteValue(value, def(key));
         expect(quoted.startsWith('"') && quoted.endsWith('"')).toBe(true);
@@ -332,21 +334,16 @@ describe('/etc/default/sapientcot round-trip', () => {
         expect(quoted.slice(1, -1)).not.toMatch(/(^|[^\\])[$`]/);
     });
 
-    test.each(SHELL_META.filter(([, v]) => !/[$`]/.test(v)))('%s value %j round-trips through the file', (key, value) => {
+    test.each(ACCEPTED_META)('%s value %j round-trips through the file', (key, value) => {
         const text = serializeEnvDefault([], { ...defaultFormFromConf(CONF_PARAMS), [key]: value }, CONF_PARAMS);
         expect(parseEnvDefault(text, knownKeys).values[key]).toBe(value);
     });
 
-    // BUG (in @snstac/cockpit-shared envDefaultFile, reachable through this
-    // schema): shellQuoteValue escapes `$` and backtick as `\$` / `\``, but
-    // parseEnvDefault's stripWrappingQuotes only un-escapes `\"` and `\\`.
-    // COT_URL and the PYTAK_TLS_* path regexes accept `$` and backtick, so such
-    // a value reads back with a stray backslash, and every subsequent save adds
-    // more (`\$` -> `\\\$` -> ...), silently corrupting the setting.
-    test.fails.each(SHELL_META.filter(([, v]) => /[$`]/.test(v)))('%s value %j round-trips through the file', (key, value) => {
-        const once = serializeEnvDefault([], { ...defaultFormFromConf(CONF_PARAMS), [key]: value }, CONF_PARAMS);
-        const parsed = parseEnvDefault(once, knownKeys);
-        expect(parsed.values[key]).toBe(value);
-        expect(serializeEnvDefault(parsed.lines, { ...defaultFormFromConf(CONF_PARAMS), ...parsed.values }, CONF_PARAMS)).toBe(once);
+    // @snstac/cockpit-shared's shellQuoteValue escapes `$` and backtick as
+    // `\$` / `\``, but parseEnvDefault only un-escapes `\"` and `\\`, so such
+    // values gain a backslash on every save. Until the reader is fixed
+    // upstream, validation must keep them out of the file.
+    test.each(SHELL_META.filter(([, v]) => /[$`]/.test(v)))('%s value %j is rejected by validation', (key, value) => {
+        expect(accepts(key, value)).toBe(false);
     });
 });

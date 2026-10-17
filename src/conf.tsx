@@ -2,13 +2,16 @@ import { EnvVarDefinition } from '@snstac/cockpit-shared';
 
 // Configuration schema for /etc/default/sapientcot (SAPIENTCOT: SAPIENT BSI Flex
 // 335 sensor detections -> CoT). Reads a SAPIENT Fusion/HLDMM node over TCP.
+// Free-form values (URL, paths) exclude `$` and backtick: cockpit-shared's
+// writer escapes them but its reader does not unescape them, so they would
+// gain a backslash on every save.
 export const CONF_PARAMS: Record<string, EnvVarDefinition> = {
 
     COT_URL: {
         type: 'url',
         description: 'URL of the CoT destination, typically Mesh SA or a TAK Server',
         defaultValue: 'udp+wo://239.2.3.1:6969',
-        validation: /^(udp\+wo|http|https|udp|tcp|tls|file|log|tcp\+wo|udp\+broadcast):\/\/[^\s]+$/,
+        validation: /^(udp\+wo|http|https|udp|tcp|tls|file|log|tcp\+wo|udp\+broadcast):\/\/[^\s$`]+$/,
         requiresQuoting: false,
         required: true,
     },
@@ -89,7 +92,7 @@ export const CONF_PARAMS: Record<string, EnvVarDefinition> = {
         type: 'path',
         description: '(TLS) PEM client certificate for tls:// TAK Server destinations',
         defaultValue: '',
-        validation: /^(\/[^\s]*)?$/,
+        validation: /^(\/[^\s$`]*)?$/,
         requiresQuoting: false,
         required: false,
     },
@@ -98,7 +101,7 @@ export const CONF_PARAMS: Record<string, EnvVarDefinition> = {
         type: 'path',
         description: '(TLS) PEM client private key, if separate from the certificate',
         defaultValue: '',
-        validation: /^(\/[^\s]*)?$/,
+        validation: /^(\/[^\s$`]*)?$/,
         requiresQuoting: false,
         required: false,
     },
@@ -107,7 +110,7 @@ export const CONF_PARAMS: Record<string, EnvVarDefinition> = {
         type: 'path',
         description: '(TLS) PEM CA certificate(s) used to verify the TAK Server',
         defaultValue: '',
-        validation: /^(\/[^\s]*)?$/,
+        validation: /^(\/[^\s$`]*)?$/,
         requiresQuoting: false,
         required: false,
     },
