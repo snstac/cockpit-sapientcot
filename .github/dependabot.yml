@@ -28,6 +28,12 @@ updates:
         patterns:
           - "@types*"
           - "types*"
+      test-tooling:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "@testing-library/*"
+          - "jsdom"
 
     ignore:
       # https://github.com/cockpit-project/cockpit/issues/21151
@@ -49,3 +55,9 @@ updates:
       - "no-test"
     schedule:
       interval: "weekly"
+    # workflows pin actions by commit SHA; dependabot bumps the SHA and the
+    # trailing "# vX.Y.Z" comment together
+    groups:
+      actions:
+        patterns:
+          - "*"

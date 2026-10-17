@@ -12,6 +12,20 @@ no SSH required.
 
 Install the `.deb` from the GitHub Releases page, or `make install` compiles and installs the package in `/usr/local/share/cockpit/`.
 
+# Development
+
+Requires Node.js 22.13+ (vitest 5 / jsdom 29), `git` and `make` (the build fetches Cockpit's `pkg/lib`
+helpers on first use).
+
+    npm ci
+    npm run build          # bundle into dist/
+    npm test               # unit tests (vitest + jsdom)
+    npm run test:coverage  # same, enforcing 90% coverage of src/
+    npm run eslint && npm run stylelint && npx tsc --noEmit -p .
+
+Browser integration tests (`test/check-application`) need a Cockpit test VM; see
+`make check`.
+
 ## The snstac TAK sensor ecosystem
 
 Different sensor, same workflow — pick the gateway for your application; most have a

@@ -41,6 +41,13 @@ const SERVICE_NAME = 'sapientcot';
 const CONFIG_FILE = `/etc/default/${SERVICE_NAME}`;
 const KNOWN_KEYS = new Set(Object.keys(CONF_PARAMS));
 
+// Boolean fields accept 0/1 and any case in the file; map them onto the two
+// <select> options so e.g. DEBUG=0 is not displayed as "True".
+function booleanSelectValue(value: string | undefined, fallback: string): 'true' | 'false' {
+    const v = value === undefined || value === '' ? fallback : value;
+    return /^(1|true)$/i.test(v) ? 'true' : 'false';
+}
+
 function StatusOutput({ serviceName }: { serviceName: string }) {
     const [statusOutput, setStatusOutput] = useState<string>('Loading...');
     useEffect(() => {
@@ -380,7 +387,7 @@ export const Application: React.FC = () => {
                                                         ? (
                                                             <select
                                                             id={`envvar-input-${key}`}
-                                                            value={envVarForm[key]}
+                                                            value={booleanSelectValue(envVarForm[key], def.defaultValue)}
                                                             onChange={ev =>
                                                                 handleEnvVarChange(key, ev.target.value)}
                                                             >
