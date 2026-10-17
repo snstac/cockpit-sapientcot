@@ -11,7 +11,9 @@
   },
   "scripts": {
     "watch": "ESBUILD_WATCH='true' ./build.js",
+    "prebuild": "make --no-print-directory pkg/lib",
     "build": "node ./build.js",
+    "pretest": "make --no-print-directory pkg/lib",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "eslint": "eslint src/",
