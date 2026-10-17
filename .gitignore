@@ -17,6 +17,7 @@
 /Test*.png
 /*.whl
 /bots
+/coverage/
 /cockpit-*.tar.xz
 /cockpit-navigator.spec
 /dist/
