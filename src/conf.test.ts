@@ -48,6 +48,7 @@ describe('CONF_PARAMS schema', () => {
             'COT_TYPE',
             'COT_URL',
             'DEBUG',
+            'PYTAK_TLS_CLIENT_CAFILE',
             'PYTAK_TLS_CLIENT_CERT',
             'PYTAK_TLS_CLIENT_KEY',
             'SAPIENT_HOST',
@@ -208,6 +209,10 @@ const VALIDATION_CASES: Record<string, Cases> = {
     PYTAK_TLS_CLIENT_KEY: {
         accept: ['', '/etc/x.key', '/etc/sapientcot/client.key.pem'],
         reject: ['relative/x', 'x.key', '/a b', '/a\tb'],
+    },
+    PYTAK_TLS_CLIENT_CAFILE: {
+        accept: ['', '/etc/sapientcot/tls/ca.pem', '/etc/ssl/certs/ca-certificates.crt'],
+        reject: ['relative/ca.pem', 'ca.pem', '/a b', '/etc/ca.pem\nEVIL=1'],
     },
     DEBUG: {
         accept: ['', 'true', 'false', '0', '1', 'TRUE', 'False'],

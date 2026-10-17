@@ -103,6 +103,15 @@ export const CONF_PARAMS: Record<string, EnvVarDefinition> = {
         required: false,
     },
 
+    PYTAK_TLS_CLIENT_CAFILE: {
+        type: 'path',
+        description: '(TLS) PEM CA certificate(s) used to verify the TAK Server',
+        defaultValue: '',
+        validation: /^(\/[^\s]*)?$/,
+        requiresQuoting: false,
+        required: false,
+    },
+
     DEBUG: {
         type: 'boolean',
         description: 'Enable debug-level logging',

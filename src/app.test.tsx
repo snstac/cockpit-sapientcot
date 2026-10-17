@@ -765,19 +765,17 @@ describe('TLS install callback', () => {
         expect(screen.getByText(/unsaved changes/)).toBeTruthy();
     });
 
-    test('ca path alone marks dirty but has no visible field', async () => {
+    test('ca path alone marks dirty and fills the CA field', async () => {
         await renderLoaded();
         fireEvent.click(screen.getByRole('button', { name: 'tls-ca' }));
         expect(screen.getByText(/unsaved changes/)).toBeTruthy();
-        expect(document.getElementById('envvar-input-PYTAK_TLS_CLIENT_CAFILE')).toBeNull();
+        expect((input('PYTAK_TLS_CLIENT_CAFILE') as HTMLInputElement).value).toBe('/etc/sapientcot/tls/ca.pem');
     });
 
-    // BUG: onTlsInstalled stores the installed CA bundle path under
-    // PYTAK_TLS_CLIENT_CAFILE, but that key is not in CONF_PARAMS. It is
-    // therefore never rendered, and serializeEnvDefault (which only writes
-    // keys present in the file's known lines or in CONF_PARAMS) silently
-    // drops it, so the CA file the user just installed is never configured.
-    test.fails('installed CA path is written to the config on save', async () => {
+    // Regression: onTlsInstalled stores the CA bundle path under
+    // PYTAK_TLS_CLIENT_CAFILE; that key used to be missing from CONF_PARAMS,
+    // so serializeEnvDefault silently dropped it on save.
+    test('installed CA path is written to the config on save', async () => {
         await renderLoaded();
         fireEvent.click(screen.getByRole('button', { name: 'tls-ca' }));
         submit();
