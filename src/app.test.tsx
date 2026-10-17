@@ -438,13 +438,19 @@ describe('field validation', () => {
         expect(screen.getByText(/unsaved changes/)).toBeTruthy();
     });
 
-    // BUG: DEBUG's schema accepts 0/1 and any case (/^(true|false|0|1)?$/i),
-    // but the boolean <select> only has "true"/"false" options. A file value
-    // such as DEBUG=0 matches no option, so the browser falls back to the
-    // first option and the UI shows "True" although debug logging is OFF.
-    test.fails('boolean field loaded as DEBUG=0 is shown as False', async () => {
-        await renderLoaded(SAMPLE.replace('DEBUG=true', 'DEBUG=0'));
-        expect((input('DEBUG') as HTMLSelectElement).value).toBe('false');
+    // Regression: DEBUG's schema accepts 0/1 and any case, but the <select>
+    // only has "true"/"false" options; DEBUG=0 used to match no option, so the
+    // browser fell back to the first one and showed "True".
+    test.each([
+        ['0', 'false'],
+        ['FALSE', 'false'],
+        ['False', 'false'],
+        ['1', 'true'],
+        ['TRUE', 'true'],
+        ['', 'false'],
+    ])('boolean field loaded as DEBUG=%j is shown as %s', async (fileValue, shown) => {
+        await renderLoaded(SAMPLE.replace('DEBUG=true', `DEBUG=${fileValue}`));
+        expect((input('DEBUG') as HTMLSelectElement).value).toBe(shown);
     });
 });
 
