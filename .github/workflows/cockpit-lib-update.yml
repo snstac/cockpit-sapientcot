@@ -4,12 +4,19 @@ on:
     - cron: '0 2 * * 4'
   # can be run manually on https://github.com/cockpit-project/starter-kit/actions
   workflow_dispatch:
+
+# Nothing by default; the job below asks only for what it needs.
+permissions: {}
+
 jobs:
   cockpit-lib-update:
+    # don't run the scheduled job on forks
+    if: github.repository == 'snstac/cockpit-sapientcot'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
-      pull-requests: write
-      contents: write
+      pull-requests: write  # open the update PR
+      contents: write       # push the update branch
     steps:
       - name: Set up dependencies
         run: |
@@ -17,12 +24,15 @@ jobs:
           sudo apt install -y make
 
       - name: Set up configuration and secrets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           printf '[user]\n\tname = Cockpit Project\n\temail=cockpituous@gmail.com\n' > ~/.gitconfig
-          echo '${{ secrets.GITHUB_TOKEN }}' > ~/.config/github-token
+          mkdir -p ~/.config
+          (umask 077 && printf '%s\n' "${GITHUB_TOKEN}" > ~/.config/github-token)
 
       - name: Clone repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Run cockpit-lib-update
         run: |

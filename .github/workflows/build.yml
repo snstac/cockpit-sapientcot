@@ -7,19 +7,75 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Least privilege: every job gets read-only contents unless it says otherwise.
 permissions:
-  contents: write   # upload assets to releases on tags
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  test:
+    name: Lint, type-check, unit tests (fresh checkout)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      # Exactly the documented developer path, from a clean tree: pkg/lib is
+      # fetched by the prebuild/pretest hooks, not by a prior `make`.
+      - name: npm ci
+        run: npm ci
+
+      - name: npm run build
+        run: npm run build
+
+      - name: npm test (with coverage thresholds)
+        run: npm run test:coverage
+
+      - name: ESLint
+        run: npm run eslint
+
+      - name: Stylelint
+        run: npm run stylelint
+
+      - name: TypeScript
+        run: npx tsc --noEmit -p .
+
+      - name: Coverage summary
+        if: always()
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e '
+              const t = require("./coverage/coverage-summary.json").total;
+              const rows = ["lines", "statements", "functions", "branches"]
+                .map(k => `| ${k} | ${t[k].pct}% (${t[k].covered}/${t[k].total}) |`);
+              console.log(["| metric | coverage |", "|---|---|", ...rows].join("\n"));
+            ' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   packages:
     name: Build plugin + deb/rpm packages
+    needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          node-version: '20'
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
 
       - name: Build the Cockpit plugin
         run: make
@@ -27,10 +83,13 @@ jobs:
           NODE_ENV: production
 
       - name: Install nfpm
+        env:
+          NFPM_VERSION: 2.41.3
+          NFPM_SHA256: f92bf886c0f96767abcdc17195449faadb93fb20105532609820a412b4b2a46f
         run: |
-          NFPM_VERSION=2.41.3
-          curl -sSfL "https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_amd64.deb" -o /tmp/nfpm.deb
-          sudo dpkg -i /tmp/nfpm.deb
+          curl -sSfL "https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_amd64.deb" -o "${RUNNER_TEMP}/nfpm.deb"
+          echo "${NFPM_SHA256}  ${RUNNER_TEMP}/nfpm.deb" | sha256sum --check --strict
+          sudo dpkg -i "${RUNNER_TEMP}/nfpm.deb"
 
       - name: Determine version
         id: ver
@@ -55,15 +114,31 @@ jobs:
           deb=$(ls out/*.deb); echo "== $deb =="; dpkg-deb -c "$deb" | grep -E 'cockpit/sapientcot|metainfo' | head
           dpkg-deb -I "$deb" | grep -E 'Package|Version|Depends|Architecture'
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: packages
           path: out/*
+          if-no-files-found: error
+
+  release:
+    name: Attach packages to GitHub release
+    if: github.ref_type == 'tag'
+    needs: packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The only job that can write: creating a release and uploading assets.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7.0.0
+        with:
+          name: packages
+          path: out
 
       - name: Create release and attach packages
-        if: github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           if ! gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
             gh release create "${GITHUB_REF_NAME}" --generate-notes --title "Release ${GITHUB_REF_NAME}"
