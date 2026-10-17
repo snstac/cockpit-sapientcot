@@ -15,6 +15,7 @@
     "build": "node ./build.js",
     "pretest": "make --no-print-directory pkg/lib",
     "test": "vitest run --passWithNoTests",
+    "pretest:coverage": "make --no-print-directory pkg/lib",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "eslint": "eslint src/",

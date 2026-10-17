@@ -14,7 +14,7 @@ Install the `.deb` from the GitHub Releases page, or `make install` compiles and
 
 # Development
 
-Requires Node.js 22.12+, `git` and `make` (the build fetches Cockpit's `pkg/lib`
+Requires Node.js 22.13+ (vitest 5 / jsdom 29), `git` and `make` (the build fetches Cockpit's `pkg/lib`
 helpers on first use).
 
     npm ci

@@ -452,6 +452,13 @@ describe('field validation', () => {
         await renderLoaded(SAMPLE.replace('DEBUG=true', `DEBUG=${fileValue}`));
         expect((input('DEBUG') as HTMLSelectElement).value).toBe(shown);
     });
+
+    test('DEBUG=0 saved untouched is written back unchanged', async () => {
+        await renderLoaded(SAMPLE.replace('DEBUG=true', 'DEBUG=0'));
+        submit();
+        await screen.findByText('Configuration saved.');
+        expect(h.replace.mock.calls[0][0]).toMatch(/^DEBUG=0$/m);
+    });
 });
 
 describe('input rendering', () => {

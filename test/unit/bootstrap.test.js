@@ -9,11 +9,12 @@
 import fs from 'node:fs';
 import { describe, expect, test } from 'vitest';
 
-const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-const makefile = fs.readFileSync('Makefile', 'utf8');
+const root = new URL('../../', import.meta.url);
+const pkg = JSON.parse(fs.readFileSync(new URL('package.json', root), 'utf8'));
+const makefile = fs.readFileSync(new URL('Makefile', root), 'utf8');
 
 describe('fresh checkout bootstrap', () => {
-    test.each(['prebuild', 'pretest'])('%s fetches pkg/lib via make', hook => {
+    test.each(['prebuild', 'pretest', 'pretest:coverage'])('%s fetches pkg/lib via make', hook => {
         expect(pkg.scripts[hook]).toMatch(/\bmake\b.*\bpkg\/lib\b/);
     });
 
